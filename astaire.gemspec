@@ -14,5 +14,5 @@ Gem::Specification.new do |s|
   s.files        = Dir['README', 'LICENSE', 'lib/**/*']
   s.require_path = 'lib'
 
-  s.add_dependency 'actionpack', '~> 3.0.0.beta1'
+  s.add_dependency 'actionpack', '~> 3.0.0.beta2'
 end

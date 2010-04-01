@@ -13,7 +13,6 @@ module Astaire
       end
     end
 
-
     module ClassMethods
       def call(env)
         _router.call(env)
