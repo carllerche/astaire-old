@@ -7,4 +7,5 @@ else
 end
 
 gem "actionpack", :source => rails_source
+gem "rake"
 gem "rspec"

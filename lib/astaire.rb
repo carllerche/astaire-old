@@ -5,30 +5,24 @@ module Astaire
   module DSL
     extend ActiveSupport::Concern
 
+    included do
+      unless respond_to?(:_router)
+        def self._router
+          @_router ||= ActionDispatch::Routing::RouteSet.new
+        end
+      end
+    end
+
+
     module ClassMethods
       def call(env)
-        finalize!
-        router.call(env)
+        _router.call(env)
       rescue ActionController::RoutingError
         [404, {'Content-Type' => 'text/html', 'X-Cascade' => 'pass'}, []]
       end
 
-      def finalize!
-        return if @finalized
-        router.finalize!
-        @finalized = true
-      end
-
-      def router
-        @router ||= begin
-          rs = ActionDispatch::Routing::RouteSet.new
-          rs.clear!
-          rs
-        end
-      end
-
       def mapper
-        @mapper ||= ActionDispatch::Routing::Mapper.new(router)
+        @mapper ||= ActionDispatch::Routing::Mapper.new(_router)
       end
 
       %w(get post put delete).each do |method|
