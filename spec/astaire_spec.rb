@@ -1,20 +1,8 @@
-$:.unshift File.expand_path('../../lib', __FILE__)
-
-require 'rubygems'
-require 'astaire'
-require 'rack/test'
+require 'helper'
 
 describe "Astaire::DSL" do
-  include Rack::Test::Methods
-
-  attr_reader :app
-
   def build_app(&blk)
     @app = Rack::Lint.new(Class.new(Astaire::Base, &blk))
-  end
-
-  class Astaire::Base < ActionController::Base
-    include Astaire::DSL
   end
 
   describe "basic DSL usage" do
