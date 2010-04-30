@@ -16,8 +16,6 @@ module Astaire
     module ClassMethods
       def call(env)
         _router.call(env)
-      rescue ActionController::RoutingError
-        [404, {'Content-Type' => 'text/html', 'X-Cascade' => 'pass'}, []]
       end
 
       def mapper
