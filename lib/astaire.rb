@@ -13,7 +13,7 @@ module Astaire
       self._astaire_router = ActionDispatch::Routing::RouteSet.new
 
       class_attribute :_astaire_helpers
-      self._astaire_helpers = Module.new
+      self._astaire_helpers = url_helper_module
 
       include _astaire_helpers
       helper _astaire_helpers
@@ -47,31 +47,44 @@ module Astaire
         make_url_helper(opts[:as]) if opts[:as]
       end
 
+      def url_helper_module
+        Module.new do
+          def _astaire_url_opts_from_args(name, route, args, only_path)
+            opts = args.extract_options!
+
+            if args.any?
+              opts[:_positional_args] = args
+              opts[:_positional_keys] = route.segment_keys
+            end
+
+            opts = url_options.merge(opts)
+            opts.merge!(:use_route => name, :only_path => only_path)
+
+            if path_segments = opts[:_path_segments]
+              path_segments.delete(:controller)
+              path_segments.delete(:action)
+            end
+
+            opts
+          end
+        end
+      end
+
       def make_url_helper(name)
         name   = name.to_sym
         router = _astaire_router
 
         _astaire_helpers.module_eval do
-          %W(#{name}_path #{name}_url).each do |method_name|
-            define_method method_name do |*args|
-              opts  = args.extract_options!
-              route = router.named_routes[name]
+          define_method "#{name}_path" do |*args|
+            route = router.named_routes[name]
+            opts  = _astaire_url_opts_from_args(name, route, args, true)
+            router.url_for(opts)
+          end
 
-              if args.any?
-                opts[:_positional_args] = args
-                opts[:_positional_keys] = route.segment_keys
-              end
-
-              opts = url_options.merge(opts)
-              opts.merge!(:use_route => name)
-
-              if path_segments = opts[:_path_segments]
-                path_segments.delete(:controller)
-                path_segments.delete(:action)
-              end
-
-              router.url_for(opts)
-            end
+          define_method "#{name}_url" do |*args|
+            route = router.named_routes[name]
+            opts  = _astaire_url_opts_from_args(name, route, args, false)
+            router.url_for(opts)
           end
         end
       end

@@ -16,6 +16,18 @@ describe "Astaire::DSL" do
           render :text => "#{method}: hello"
         end
       end
+
+      get "/hello", :as => :hello do
+        render :text => "hello"
+      end
+
+      get "/hello_path" do
+        render :text => hello_path
+      end
+
+      get "/hello_url" do
+        render :text => hello_url
+      end
     end
   end
 
@@ -39,6 +51,18 @@ describe "Astaire::DSL" do
           last_response.status.should == 404
         end
       end
+    end
+  end
+
+  describe "generating URLs" do
+    it "provides <name>_path" do
+      get "/hello_path"
+      last_response.body.should == "/hello"
+    end
+
+    it "provides <name>_url" do
+      get "/hello_url"
+      last_response.body.should == "http://example.org/hello"
     end
   end
 end
