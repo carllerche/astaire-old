@@ -11,7 +11,7 @@ Gem::Specification.new do |s|
   s.email        = 'clerche@engineyard.com'
   s.homepage     = 'http://github.com/carllerche/astaire'
 
-  s.files        = Dir['README', 'LICENSE', 'lib/**/*']
+  s.files        = Dir['README.md', 'LICENSE', 'lib/**/*']
   s.require_path = 'lib'
 
   s.add_dependency 'actionpack', '~> 3.0.0.beta2'
