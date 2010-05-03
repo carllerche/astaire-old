@@ -1,7 +1,7 @@
 Gem::Specification.new do |s|
   s.platform     = Gem::Platform::RUBY
   s.name         = 'astaire'
-  s.version      = "0.0.1"
+  s.version      = "0.2.0"
   s.summary      = 'The basic Sinatra DSL inside of ActionController'
   s.description  = 'Allows the use of get, post, put, and delete to define ' \
                    'actions and then allows the controller constant to be ' \
