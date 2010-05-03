@@ -1,35 +1,79 @@
 require 'active_support/concern'
 require 'action_controller'
+require 'astaire/railtie' if defined?(Rails)
 
 module Astaire
   module DSL
     extend ActiveSupport::Concern
 
+    include AbstractController::Helpers
+
     included do
-      unless respond_to?(:_router)
-        def self._router
-          @_router ||= ActionDispatch::Routing::RouteSet.new
-        end
-      end
+      class_attribute :_astaire_router
+      self._astaire_router = ActionDispatch::Routing::RouteSet.new
+
+      class_attribute :_astaire_helpers
+      self._astaire_helpers = Module.new
+
+      include _astaire_helpers
+      helper _astaire_helpers
     end
 
     module ClassMethods
       def call(env)
-        _router.call(env)
+        _astaire_router.call(env)
       end
 
       def mapper
-        @mapper ||= ActionDispatch::Routing::Mapper.new(_router)
+        @mapper ||= ActionDispatch::Routing::Mapper.new(_astaire_router)
       end
 
       %w(get post put delete).each do |method|
         class_eval <<-R, __FILE__, __LINE__+1
           def #{method}(path, opts = {}, &blk)
-            action_name = "[#{method}] \#{path}"
-            define_method action_name, &blk
-            mapper.match(path, :via => '#{method}', :to => action(action_name))
+            map_astaire_action "#{method}", path, opts, blk
           end
         R
+      end
+
+    private
+
+      def map_astaire_action(method, path, opts, blk)
+        action_name = "[#{method}] #{path}"
+        define_method action_name, &blk
+        opts.merge! :via => method, :to => action(action_name)
+
+        mapper.match(path, opts)
+        make_url_helper(opts[:as]) if opts[:as]
+      end
+
+      def make_url_helper(name)
+        name   = name.to_sym
+        router = _astaire_router
+
+        _astaire_helpers.module_eval do
+          %W(#{name}_path #{name}_url).each do |method_name|
+            define_method method_name do |*args|
+              opts  = args.extract_options!
+              route = router.named_routes[name]
+
+              if args.any?
+                opts[:_positional_args] = args
+                opts[:_positional_keys] = route.segment_keys
+              end
+
+              opts = url_options.merge(opts)
+              opts.merge!(:use_route => name)
+
+              if path_segments = opts[:_path_segments]
+                path_segments.delete(:controller)
+                path_segments.delete(:action)
+              end
+
+              router.url_for(opts)
+            end
+          end
+        end
       end
     end
   end
