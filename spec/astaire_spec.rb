@@ -7,23 +7,38 @@ describe "Astaire::DSL" do
     @app = Rack::Lint.new(app)
   end
 
-  describe "get '/'" do
-    before :each do
-      build_app do
-        get "/" do
-          render :text => "Hello"
+  METHODS = %w(get post put delete)
+
+  before :each do
+    build_app do
+      METHODS.each do |method|
+        send(method, "/ima_#{method}") do
+          render :text => "#{method}: hello"
         end
       end
     end
+  end
 
-    it "returns the test" do
-      get "/"
-      last_response.body.should == "Hello"
-    end
+  METHODS.each do |method|
+    describe "##{method}" do
+      it "successfully calls a valid action with a correct method" do
+        send(method, "/ima_#{method}")
+        last_response.body.should == "#{method}: hello"
+      end
 
-    it "returns a 404 when using other methods" do
-      post "/"
-      last_response.status.should == 404
+      it "does not call a valid action with an incorrect method" do
+        (METHODS - [method]).each do |m|
+          send(m, "/ima_#{method}")
+          last_response.status.should == 404
+        end
+      end
+
+      it "does not call an invalid action with a correct method" do
+        METHODS.each do |m|
+          send(m, "/ima")
+          last_response.status.should == 404
+        end
+      end
     end
   end
 end
