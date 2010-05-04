@@ -65,8 +65,22 @@ It is possible to name actions such that regular URL helpers can generate them.
 
     end
 
+Astaire supports inline templates in the same style as Sinatra. For example:
+
+    class MyController < ActionController::Base
+
+      get "/hello" do
+        render :greetings
+      end
+
+    end
+
+    __END__
+
+    @@ greetings.html.erb
+    Greetings to you.
+
 ### TODO
 
 I guess, at this point I'm just putting what I have into the wild. Next
-steps will be determined by feedback that I get. One thing that I would
-like to add is Sinatra's inline template feature.
+steps will be determined by feedback that I get.
